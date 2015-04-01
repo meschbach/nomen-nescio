@@ -15,10 +15,26 @@
 				sim: init_simulation( )
 			};
 			init_player( sys );
+			init_dock( sys );
+		}
 
-			var otherCraft = {
-				forwardThrust: 0.005
+		function init_dock( sys ){
+			var dock = {
+				momentum: { x: 0, y: 0, z: 0 },
+				position: { x: 0, y: 0, z: 0 },
+				animate_tick: function(){
+					var model = sys.visuals.cube;
+					model.position.x = this.position.x;
+					model.position.y = this.position.y;
+					model.position.z = this.position.z;
+				},
+				simulation_tick: function(){
+					this.position.x += this.momentum.x;
+					this.position.y += this.momentum.y;
+					this.position.z += this.momentum.z;
+				}
 			};
+			sys.visuals.animatable.push( dock );
 		}
 
 		function init_player( sys ){
@@ -68,9 +84,9 @@
 
 		function thrust_aspect( sys, object, vector ){
 			var thruster = {
-				step: 0.01,
-				maximum: 0.4,
-				minimum: -0.4,
+				step: 0.10 / 60.0,
+				maximum: 1.00 / 60.0,
+				minimum: -1.00 / 60.0,
 				thrust: 0,
 				vector: vector,
 				simulation_tick: function(){
@@ -81,13 +97,13 @@
 				},
 				increase: function(){
 					var more = this.thrust + this.step;
-					if( more < this.maximum ){
+					if( more <= this.maximum ){
 						this.thrust = more;
 					}
 				},
 				decrease: function(){
 					var less = this.thrust - this.step;
-					if( less > this.minimum ){
+					if( less >= this.minimum ){
 						this.thrust = less;
 					}
 				}
