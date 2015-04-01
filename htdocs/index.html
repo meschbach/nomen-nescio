@@ -8,7 +8,74 @@
 		<script src="js/three.min.js"></script>
 		<script>
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
-			function init(){
+	var preRender = [];
+		function init(){
+			var sys = {
+				visuals: init_gl(),
+				sim: init_simulation( )
+			};
+			init_player( sys );
+
+			var otherFighter = {
+				forwardThrust: 0.005
+			};
+		}
+
+		function init_player( sys ){
+			var visuals = sys.visuals;
+			var sim = sys.sim;
+
+			var player = {
+				position: { x: 0, y: 0, z: 5 },
+				animate_tick: function(){
+					var camera = visuals.camera;
+					camera.position.x = this.position.x;
+					camera.position.y = this.position.y;
+					camera.position.z = this.position.z;
+				}
+			};
+			visuals.animatable.push( player );
+			var primary_thruster = thrust_aspect( sys, player );
+
+			window.addEventListener( "keydown", function( k ){
+			//	console.log( "key: ", k );
+				switch( k.which ){
+					case 87:
+						primary_thruster.thrust += 0.01;
+						break;
+					case 83:
+						primary_thruster.thrust -= 0.01;
+						break;
+				}
+			});
+		}
+
+		function thrust_aspect( sys, object ){
+			var thruster = {
+				thrust: 0,
+				vector: { x: 0, y: 0, z: -1 },
+				simulation_tick: function(){
+					//TODO thrust
+					object.position.x += this.vector.x * this.thrust;
+					object.position.y += this.vector.y * this.thrust;
+					object.position.z += this.vector.z * this.thrust;
+				}
+			};
+			sys.sim.simulate.push( thruster );
+			return thruster;
+		}
+
+		function init_simulation( visuals /* don't really belong here */ ){
+			var tickables = [];
+			function game_tick(){
+				tickables.forEach( function( t ) { t.simulation_tick(); } );
+			}
+
+			setInterval( game_tick, 1000 / 60 );
+			return { simulate: tickables };
+		}
+
+			function init_gl(){
 				var scene = new THREE.Scene();
 				var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
@@ -23,16 +90,23 @@
 
 				camera.position.z = 5;
 
+				var animatables = [];
 				var render = function () {
 					requestAnimationFrame( render );
 
-					cube.rotation.x += 0.1;
-					cube.rotation.y += 0.1;
+					animatables.forEach( function( visual ){
+						visual.animate_tick();
+					});
 
 					renderer.render(scene, camera);
 				};
 
 				render();
+				return {
+					camera: camera,
+					cube: cube,
+					animatable: animatables
+				};
 			}
 		</script>
 	</head>
