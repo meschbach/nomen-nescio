@@ -13,6 +13,7 @@
 				visuals: init_gl(),
 				sim: init_simulation( )
 			};
+//			init_skybox( sys );
 			var player = init_player( sys );
 			init_player_controls( sys, player.actions );
 
@@ -84,7 +85,7 @@
 				position: { x: 0, y: 0, z: -5 },
 				animate_tick: function( scene ){
 					if( !stationMesh ){
-						var geometry = new THREE.TorusGeometry( 1, .1, 64, 32);
+						var geometry = new THREE.TorusGeometry( .7, .1, 64, 32);
 						var material = new THREE.MeshBasicMaterial( { color: 0x0000FF } );
 						stationMesh= new THREE.Mesh( geometry, material );
 						scene.add( stationMesh );
@@ -106,8 +107,10 @@
 				position: { x: 0, y: 0, z: -5 },
 				animate_tick: function( scene ){
 					if( !waypointMesh ){
-						var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+						var geometry = new THREE.BoxGeometry( 1, 1, .1 );
 						var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+						material.transparent= true;
+						material.opacity = .4;
 						waypointMesh= new THREE.Mesh( geometry, material );
 						scene.add( waypointMesh );
 					}
@@ -124,7 +127,7 @@
 				}
 			};
 			sys.visuals.animatable.push( dock );
-			var hitbox = collidable_aspect( sys, dock, {x:1,y: 1,z: 1} );
+			var hitbox = collidable_aspect( sys, dock, {x:1,y: 1,z: .1} );
 			return dock;
 		}
 
@@ -441,7 +444,66 @@ var print = true;
 					animatable: animatables
 				};
 			}
+//Skybox
+		function init_skybox( sys ){
+			var rendered = false;
+			var skybox = {
+				animate_tick: function( scene ){
+					if( !rendered ){
+						do_render( scene );
+					}
+				}
+			};
+			sys.visuals.animatable.push( skybox );
+
+			function do_render( scene ){
+				var geometry = new THREE.SphereGeometry();
+
+				var texture = THREE.ImageUtils.loadTexture('/assets/background.jpg')
+				texture.minFilter = THREE.LinearFilter;
+
+				var material = new THREE.MeshBasicMaterial({
+					map: texture
+				});
+/*
+				var uniforms = {
+					texture: { type: 't', value: texture }
+				};
+				var material = new THREE.ShaderMaterial( {
+					uniforms:       uniforms,
+					vertexShader:   document.getElementById('sky-vertex').textContent,
+					fragmentShader: document.getElementById('sky-fragment').textContent
+				});
+*/
+
+				skyBox = new THREE.Mesh(geometry, material);
+				skyBox.scale.set(-1, 1, 1);
+				skyBox.rotation.order = 'XZY';
+				scene.add(skyBox);
+			}
+		}
 		</script>
+
+<script type="application/x-glsl" id="sky-vertex">
+varying vec2 vUV;
+
+void main() {
+  vUV = uv;
+  vec4 pos = vec4(position, 1.0);
+  gl_Position = projectionMatrix * modelViewMatrix * pos;
+}
+</script>
+
+<script type="application/x-glsl" id="sky-fragment">
+uniform sampler2D texture;
+varying vec2 vUV;
+
+void main() {
+  vec4 sample = texture2D(texture, vUV);
+  gl_FragColor = vec4(sample.xyz, sample.w);
+}
+</script>
+
 	</head>
 	<body onload='init()'>
 	</body>
