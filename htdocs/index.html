@@ -78,15 +78,44 @@
 		}
 
 		function init_dock( sys ){
+			// Interesting object to fly through
+			var stationMesh;
+			var simulatedStation = {
+				position: { x: 0, y: 0, z: -5 },
+				animate_tick: function( scene ){
+					if( !stationMesh ){
+						var geometry = new THREE.TorusGeometry( 1, .1, 64, 32);
+						var material = new THREE.MeshBasicMaterial( { color: 0x0000FF } );
+						stationMesh= new THREE.Mesh( geometry, material );
+						scene.add( stationMesh );
+					}
+
+					stationMesh.matrixWorldNeedsUpdate = true; 
+					stationMesh.position.x = this.position.x;
+					stationMesh.position.y = this.position.y;
+					stationMesh.position.z = this.position.z;
+				}
+			};
+			sys.visuals.animatable.push( simulatedStation );
+
+			// Objective area
+			var waypointMesh;
 			var dock = {
 				name: "dock",
 				momentum: { x: 0, y: 0, z: 0 },
 				position: { x: 0, y: 0, z: -5 },
-				animate_tick: function(){
-					var model = sys.visuals.cube;
-					model.position.x = this.position.x;
-					model.position.y = this.position.y;
-					model.position.z = this.position.z;
+				animate_tick: function( scene ){
+					if( !waypointMesh ){
+						var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+						var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+						waypointMesh= new THREE.Mesh( geometry, material );
+						scene.add( waypointMesh );
+					}
+
+					waypointMesh.position.x = this.position.x;
+					waypointMesh.position.y = this.position.y;
+					waypointMesh.position.z = this.position.z;
+
 				},
 				simulation_tick: function(){
 					this.position.x += this.momentum.x;
@@ -393,11 +422,6 @@ var print = true;
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
-				var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-				var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-				var cube = new THREE.Mesh( geometry, material );
-				scene.add( cube );
-
 				camera.position.z = 5;
 
 				var animatables = [];
@@ -414,7 +438,6 @@ var print = true;
 				render();
 				return {
 					camera: camera,
-					cube: cube,
 					animatable: animatables
 				};
 			}
