@@ -16,6 +16,17 @@
 			};
 			init_player( sys );
 			init_dock( sys );
+
+			var textGeom;
+			var text = {
+				animate_tick: function( scene ){
+					if( !textGeom ){
+						textGeom = new THREE.TextGeometry( "Hello, intersect with the cube." );
+						scene.add( textGeom );
+					}
+					textGeom.position.y = 1.2;
+				}
+			}
 		}
 
 		function init_dock( sys ){
@@ -35,6 +46,7 @@
 				}
 			};
 			sys.visuals.animatable.push( dock );
+			var hitbox = collidable_aspect( sys, dock, {x:0.5,y:0.5,z: 0.5} );
 		}
 
 		function init_player( sys ){
@@ -61,6 +73,7 @@
 			var primary_thruster = thrust_aspect( sys, player, { x: 0, y: 0, z: -1 } );
 			var top_nav_thruster = thrust_aspect( sys, player, { x: 0, y: 1, z: 0 } );
 			var bottom_nav_thruster = thrust_aspect( sys, player, { x: 0, y: -1, z: 0 } );
+			var hitbox = collidable_aspect( sys, player, {x: 1, y: 1, z: 1} );
 
 			window.addEventListener( "keydown", function( k ){
 				var c = String.fromCharCode( k.keyCode );
@@ -78,8 +91,46 @@
 					case 'S':
 						primary_thruster.decrease();
 						break;
+					case 'P':
+						primary_thruster.stop();
+						break;
 				}
 			});
+		}
+
+var print = true;
+		function collidable_aspect( sys, object, boundingBox ){
+			var max = new THREE.Vector3( boundingBox.x, boundingBox.y, boundingBox.z );
+			var min = new THREE.Vector3();
+			min.copy( max ).negate();
+			var collidable = {
+				object: object,
+				bounds: boundingBox,
+				calc: function(){
+					var box = new THREE.Box3( min, max );
+					var point = new THREE.Vector3( this.object.position.x, this.object.position.y, this.object.position.z );
+					return box.translate( point );
+				},
+				collision_tick: function( others ){
+					var self = this;
+					var realArea = this.calc();
+					var hit = others.filter( function( other ){
+						if( other == self ) return false;
+						var check = other.calc();
+						var hit = realArea.isIntersectionBox( check );
+						if( hit && print ){
+							console.log( check, realArea );
+						}
+						return hit;
+					});
+					if( hit.length > 0 && print ){
+						print= false;
+						console.log( hit );
+					}
+				}
+			};
+			sys.sim.collidables.push( collidable );
+			return collidable;
 		}
 
 		function thrust_aspect( sys, object, vector ){
@@ -106,6 +157,9 @@
 					if( less >= this.minimum ){
 						this.thrust = less;
 					}
+				},
+				stop: function(){
+					this.thrust = 0;
 				}
 			};
 			sys.sim.simulate.push( thruster );
@@ -114,12 +168,22 @@
 
 		function init_simulation( visuals /* don't really belong here */ ){
 			var tickables = [];
+			var collidables = [];
 			function game_tick(){
+				var done = false;
+				try {
 				tickables.forEach( function( t ) { t.simulation_tick(); } );
+				collidables.forEach( function( t ) { t.collision_tick( collidables ); } );
+				done=true;
+				}finally{
+					if( !done ){
+						clearInterval( sim_clock );
+					}
+				}
 			}
 
-			setInterval( game_tick, 1000 / 60 );
-			return { simulate: tickables };
+			var sim_clock = setInterval( game_tick, 1000 / 60 );
+			return { simulate: tickables, collidables: collidables };
 		}
 
 			function init_gl(){
@@ -142,7 +206,7 @@
 					requestAnimationFrame( render );
 
 					animatables.forEach( function( visual ){
-						visual.animate_tick();
+						visual.animate_tick( scene );
 					});
 
 					renderer.render(scene, camera);
