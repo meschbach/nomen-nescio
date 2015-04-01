@@ -8,14 +8,27 @@
 		<script src="js/three.min.js"></script>
 		<script>
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
-	var preRender = [];
 		function init(){
 			var sys = {
 				visuals: init_gl(),
 				sim: init_simulation( )
 			};
-			init_player( sys );
-			init_dock( sys );
+//			init_skybox( sys );
+			var player = init_player( sys );
+			init_player_controls( sys, player.actions );
+
+			var dock = init_dock( sys );
+
+			//Level
+			var done = false;
+			player.collidedWith = function( other ){
+				if( !done ){
+					if( other.object == dock ){
+						done = true;
+						console.log( "Docking complete. Hmm...we need more objectives." );
+					}
+				}
+			}
 
 			var textGeom;
 			var text = {
@@ -29,16 +42,83 @@
 			}
 		}
 
+		function init_player_controls( sys, actions ){
+			var keyActionMap = {
+				R: actions.translate_up,
+				Z: actions.translate_down,
+
+				W: actions.translate_fore,
+				S: actions.translate_aft,
+
+				A: actions.translate_port,
+				D: actions.translate_starboard,
+
+				I: actions.pitch_forward,
+				K: actions.pitch_back,
+
+				J: actions.yaw_port,
+				L: actions.yaw_starboard,
+
+				Q: actions.roll_port,
+				E: actions.roll_starboard,
+
+				P: actions.full_stop
+			};
+
+			window.addEventListener( "keydown", function( k ){
+				var c = String.fromCharCode( k.keyCode );
+				var action = keyActionMap[c];
+				if( action ){
+					console.log( action.description );
+					action.perform();
+				}else{
+					console.log( "No binding for ", c );
+					console.log( keyActionMap );
+				}
+			});
+		}
+
 		function init_dock( sys ){
+			// Interesting object to fly through
+			var stationMesh;
+			var simulatedStation = {
+				position: { x: 0, y: 0, z: -5 },
+				animate_tick: function( scene ){
+					if( !stationMesh ){
+						var geometry = new THREE.TorusGeometry( .7, .1, 64, 32);
+						var material = new THREE.MeshBasicMaterial( { color: 0x0000FF } );
+						stationMesh= new THREE.Mesh( geometry, material );
+						scene.add( stationMesh );
+					}
+
+					stationMesh.matrixWorldNeedsUpdate = true; 
+					stationMesh.position.x = this.position.x;
+					stationMesh.position.y = this.position.y;
+					stationMesh.position.z = this.position.z;
+				}
+			};
+			sys.visuals.animatable.push( simulatedStation );
+
+			// Objective area
+			var waypointMesh;
 			var dock = {
 				name: "dock",
 				momentum: { x: 0, y: 0, z: 0 },
 				position: { x: 0, y: 0, z: -5 },
-				animate_tick: function(){
-					var model = sys.visuals.cube;
-					model.position.x = this.position.x;
-					model.position.y = this.position.y;
-					model.position.z = this.position.z;
+				animate_tick: function( scene ){
+					if( !waypointMesh ){
+						var geometry = new THREE.BoxGeometry( 1, 1, .1 );
+						var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+						material.transparent= true;
+						material.opacity = .4;
+						waypointMesh= new THREE.Mesh( geometry, material );
+						scene.add( waypointMesh );
+					}
+
+					waypointMesh.position.x = this.position.x;
+					waypointMesh.position.y = this.position.y;
+					waypointMesh.position.z = this.position.z;
+
 				},
 				simulation_tick: function(){
 					this.position.x += this.momentum.x;
@@ -47,7 +127,8 @@
 				}
 			};
 			sys.visuals.animatable.push( dock );
-			var hitbox = collidable_aspect( sys, dock, {x:1,y: 1,z: 1} );
+			var hitbox = collidable_aspect( sys, dock, {x:1,y: 1,z: .1} );
+			return dock;
 		}
 
 		function init_player( sys ){
@@ -73,7 +154,8 @@
 					this.position.x += this.momentum.x;
 					this.position.y += this.momentum.y;
 					this.position.z += this.momentum.z;
-				}
+				},
+				collidedWith: function( hit ){}
 			};
 			visuals.animatable.push( player );
 			sys.sim.simulate.push(  player );
@@ -84,11 +166,12 @@
 			var port_nav_thruster = thrust_aspect( sys, player, { x: -1, y: 0, z: 0 } );
 
 			var hitbox = collidable_aspect( sys, player, {x: 1, y: 1, z: 1} );
-			hitbox.collided = function( hitOther ){
-				console.log( hitOther );
+			hitbox.collided = function( hitOthers ){
 				primary_thruster.stop();
 				player.momentum.z = 0;
-				console.log( player.position );
+				hitOthers.forEach( function( other ){
+					player.collidedWith( other );
+				});
 			}
 
 			var pitchThrust = rotational_thrust_aspect( sys, player, { x: 1, y:0, z:0 } );
@@ -115,52 +198,70 @@
 				rollThrust.decrease();
 			}
 
-			window.addEventListener( "keydown", function( k ){
-				var c = String.fromCharCode( k.keyCode );
-				console.log( c );
-				switch( c ){
-					case 'R':
-						top_nav_thruster.increase();
-						bottom_nav_thruster.stop();
-						break;
-					case 'Z':
-						bottom_nav_thruster.increase();
-						top_nav_thruster.stop();
-						break;
-					case 'W':
-						primary_thruster.increase();
-						break;
-					case 'S':
-						primary_thruster.decrease();
-						break;
-					case 'A':
-						port_nav_thruster.increase();
-						starboard_nav_thruster.stop();
-						player.momentum.x = 0;
-						break;
-					case 'D':
-						starboard_nav_thruster.increase();
-						port_nav_thruster.stop();
-						player.momentum.x = 0;
-						break;
-					case 'P':
-						primary_thruster.stop();
-						starboard_nav_thruster.stop();
-						port_nav_thruster.stop();
-						bottom_nav_thruster.stop();
-						top_nav_thruster.stop();
-						player.momentum.x = 0;
-						player.momentum.y = 0;
-						player.momentum.z = 0;
-						break;
-					case 'I': pitch_forward(); break;
-					case 'K': pitch_back(); break;
-					case 'J': yaw_port(); break;
-					case 'L': yaw_starboard(); break;
-					case 'Q': roll_port(); break;
-					case 'E': roll_starboard(); break;
-				}
-			});
+			player.actions = {
+				translate_up: { perform: function(){
+					top_nav_thruster.increase();
+					bottom_nav_thruster.stop();
+				}, description: "Use upward thruster" },
+
+				translate_down: { perform: function(){
+					bottom_nav_thruster.increase();
+					top_nav_thruster.stop();
+				}, description: "Use downward thruster" },
+
+				translate_port: { perform: function(){
+					port_nav_thruster.increase();
+					starboard_nav_thruster.stop();
+					player.momentum.x = 0;
+				}, description: "Use port thruster" },
+
+				translate_starboard: { perform: function(){
+					starboard_nav_thruster.increase();
+					port_nav_thruster.stop();
+					player.momentum.x = 0;
+				}, description: "Use starboard thruster" },
+
+				translate_fore: { perform: function(){
+					primary_thruster.increase();
+				}, description: "Use primary thruster" },
+
+				translate_aft: { perform: function(){
+					primary_thruster.decrease();
+				}, description: "Use braking thruster" },
+
+				full_stop: { perform: function(){
+					primary_thruster.stop();
+					starboard_nav_thruster.stop();
+					port_nav_thruster.stop();
+					bottom_nav_thruster.stop();
+					top_nav_thruster.stop();
+					player.momentum.x = 0;
+					player.momentum.y = 0;
+					player.momentum.z = 0;
+				}, description: "Disable all thrusters" },
+
+				pitch_forward: { perform: function(){
+					pitch_forward();
+				}, description: "pitch forward" },
+				pitch_back: { perform: function(){
+					pitch_back();
+				}, description: "pitch back" },
+
+				yaw_port: { perform: function(){
+					yaw_port();
+				}, description: "yaw port" },
+				yaw_starboard: { perform: function(){
+					 yaw_starboard();
+				}, description: "yaw starboard" },
+
+				roll_port: { perform: function(){
+					roll_port();
+				}, description: "roll port" },
+				roll_starboard: { perform: function(){
+					roll_starboard();
+				}, description: "roll starboard" },
+			};
+			return player;
 		}
 
 var print = true;
@@ -324,11 +425,6 @@ var print = true;
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
-				var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-				var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-				var cube = new THREE.Mesh( geometry, material );
-				scene.add( cube );
-
 				camera.position.z = 5;
 
 				var animatables = [];
@@ -345,11 +441,69 @@ var print = true;
 				render();
 				return {
 					camera: camera,
-					cube: cube,
 					animatable: animatables
 				};
 			}
+//Skybox
+		function init_skybox( sys ){
+			var rendered = false;
+			var skybox = {
+				animate_tick: function( scene ){
+					if( !rendered ){
+						do_render( scene );
+					}
+				}
+			};
+			sys.visuals.animatable.push( skybox );
+
+			function do_render( scene ){
+				var geometry = new THREE.SphereGeometry();
+
+				var texture = THREE.ImageUtils.loadTexture('/assets/background.jpg')
+				texture.minFilter = THREE.LinearFilter;
+
+				var material = new THREE.MeshBasicMaterial({
+					map: texture
+				});
+/*
+				var uniforms = {
+					texture: { type: 't', value: texture }
+				};
+				var material = new THREE.ShaderMaterial( {
+					uniforms:       uniforms,
+					vertexShader:   document.getElementById('sky-vertex').textContent,
+					fragmentShader: document.getElementById('sky-fragment').textContent
+				});
+*/
+
+				skyBox = new THREE.Mesh(geometry, material);
+				skyBox.scale.set(-1, 1, 1);
+				skyBox.rotation.order = 'XZY';
+				scene.add(skyBox);
+			}
+		}
 		</script>
+
+<script type="application/x-glsl" id="sky-vertex">
+varying vec2 vUV;
+
+void main() {
+  vUV = uv;
+  vec4 pos = vec4(position, 1.0);
+  gl_Position = projectionMatrix * modelViewMatrix * pos;
+}
+</script>
+
+<script type="application/x-glsl" id="sky-fragment">
+uniform sampler2D texture;
+varying vec2 vUV;
+
+void main() {
+  vec4 sample = texture2D(texture, vUV);
+  gl_FragColor = vec4(sample.xyz, sample.w);
+}
+</script>
+
 	</head>
 	<body onload='init()'>
 	</body>
