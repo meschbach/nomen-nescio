@@ -31,8 +31,9 @@
 
 		function init_dock( sys ){
 			var dock = {
+				name: "dock",
 				momentum: { x: 0, y: 0, z: 0 },
-				position: { x: 0, y: 0, z: 0 },
+				position: { x: 0, y: 0, z: -5 },
 				animate_tick: function(){
 					var model = sys.visuals.cube;
 					model.position.x = this.position.x;
@@ -46,7 +47,7 @@
 				}
 			};
 			sys.visuals.animatable.push( dock );
-			var hitbox = collidable_aspect( sys, dock, {x:0.5,y:0.5,z: 0.5} );
+			var hitbox = collidable_aspect( sys, dock, {x:1,y: 1,z: 1} );
 		}
 
 		function init_player( sys ){
@@ -54,13 +55,19 @@
 			var sim = sys.sim;
 
 			var player = {
+				name: "player",
 				momentum: { x: 0, y: 0, z: 0 },
+				rotation: { x: 0, y: 0, z: 0 },
 				position: { x: 0, y: 0, z: 5 },
 				animate_tick: function(){
 					var camera = visuals.camera;
 					camera.position.x = this.position.x;
 					camera.position.y = this.position.y;
 					camera.position.z = this.position.z;
+
+					camera.rotation.x = this.rotation.x;
+					camera.rotation.y = this.rotation.y;
+					camera.rotation.z = this.rotation.z;
 				},
 				simulation_tick: function(){
 					this.position.x += this.momentum.x;
@@ -73,7 +80,40 @@
 			var primary_thruster = thrust_aspect( sys, player, { x: 0, y: 0, z: -1 } );
 			var top_nav_thruster = thrust_aspect( sys, player, { x: 0, y: 1, z: 0 } );
 			var bottom_nav_thruster = thrust_aspect( sys, player, { x: 0, y: -1, z: 0 } );
+			var starboard_nav_thruster = thrust_aspect( sys, player, { x: 1, y: 0, z: 0 } );
+			var port_nav_thruster = thrust_aspect( sys, player, { x: -1, y: 0, z: 0 } );
+
 			var hitbox = collidable_aspect( sys, player, {x: 1, y: 1, z: 1} );
+			hitbox.collided = function( hitOther ){
+				console.log( hitOther );
+				primary_thruster.stop();
+				player.momentum.z = 0;
+				console.log( player.position );
+			}
+
+			var pitchThrust = rotational_thrust_aspect( sys, player, { x: 1, y:0, z:0 } );
+			function pitch_forward(){
+				pitchThrust.increase();
+			}
+			function pitch_back(){
+				pitchThrust.decrease();
+			}
+
+			var yawThrust = rotational_thrust_aspect( sys, player, { x: 0, y:1, z:0 } );
+			function yaw_port(){
+				yawThrust.increase();
+			}
+			function yaw_starboard(){
+				yawThrust.decrease();
+			}
+
+			var rollThrust = rotational_thrust_aspect( sys, player, { x: 0, y:0, z:1 } );
+			function roll_port(){
+				rollThrust.increase();
+			}
+			function roll_starboard(){
+				rollThrust.decrease();
+			}
 
 			window.addEventListener( "keydown", function( k ){
 				var c = String.fromCharCode( k.keyCode );
@@ -81,9 +121,11 @@
 				switch( c ){
 					case 'R':
 						top_nav_thruster.increase();
+						bottom_nav_thruster.stop();
 						break;
 					case 'Z':
 						bottom_nav_thruster.increase();
+						top_nav_thruster.stop();
 						break;
 					case 'W':
 						primary_thruster.increase();
@@ -91,46 +133,134 @@
 					case 'S':
 						primary_thruster.decrease();
 						break;
+					case 'A':
+						port_nav_thruster.increase();
+						starboard_nav_thruster.stop();
+						player.momentum.x = 0;
+						break;
+					case 'D':
+						starboard_nav_thruster.increase();
+						port_nav_thruster.stop();
+						player.momentum.x = 0;
+						break;
 					case 'P':
 						primary_thruster.stop();
+						starboard_nav_thruster.stop();
+						port_nav_thruster.stop();
+						bottom_nav_thruster.stop();
+						top_nav_thruster.stop();
+						player.momentum.x = 0;
+						player.momentum.y = 0;
+						player.momentum.z = 0;
 						break;
+					case 'I': pitch_forward(); break;
+					case 'K': pitch_back(); break;
+					case 'J': yaw_port(); break;
+					case 'L': yaw_starboard(); break;
+					case 'Q': roll_port(); break;
+					case 'E': roll_starboard(); break;
 				}
 			});
 		}
 
 var print = true;
 		function collidable_aspect( sys, object, boundingBox ){
-			var max = new THREE.Vector3( boundingBox.x, boundingBox.y, boundingBox.z );
+			var max = new THREE.Vector3( boundingBox.x / 2, boundingBox.y / 2, boundingBox.z / 2 );
 			var min = new THREE.Vector3();
 			min.copy( max ).negate();
+
+			var visual;
 			var collidable = {
 				object: object,
 				bounds: boundingBox,
 				calc: function(){
-					var box = new THREE.Box3( min, max );
+					var box = new THREE.Box3( min.clone(), max.clone() );
 					var point = new THREE.Vector3( this.object.position.x, this.object.position.y, this.object.position.z );
 					return box.translate( point );
 				},
+				animate_tick: function( scene ){
+					if( !visual ){
+						var geometry = new THREE.BoxGeometry( boundingBox.x, boundingBox.y, boundingBox.z );
+						var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+						var mesh = new THREE.Mesh( geometry, material );
+
+						visual = new THREE.WireframeHelper( mesh, 0xff0000 );
+						visual.matrixAutoUpdate = true; //GAH!  :-(
+
+						scene.add( visual );
+					}
+					function sync_position( target, source ){
+						target.position.x = source.position.x;
+						target.position.y = source.position.y;
+						target.position.z = source.position.z;
+					}
+					sync_position( visual, this.object );
+				},
+
 				collision_tick: function( others ){
+					var count = 0;
 					var self = this;
 					var realArea = this.calc();
 					var hit = others.filter( function( other ){
 						if( other == self ) return false;
 						var check = other.calc();
+						if( count % 997 == 0 ){
+							//console.log( check.min, check.max, realArea.min, realArea.max );
+						}
+						count++;
 						var hit = realArea.isIntersectionBox( check );
-						if( hit && print ){
-							console.log( check, realArea );
+						if( hit ){
+							if( print ){ console.log( check, realArea ); }
 						}
 						return hit;
 					});
-					if( hit.length > 0 && print ){
-						print= false;
-						console.log( hit );
+					if( hit.length > 0 ){
+						if( print ){
+							print= false;
+							console.log( hit );
+						}
+						this.collided( hit );
 					}
-				}
+				},
+
+				collided: function(){}
 			};
+			sys.visuals.animatable.push( collidable );
 			sys.sim.collidables.push( collidable );
 			return collidable;
+		}
+
+		function rotational_thrust_aspect( sys, object, vector ){
+			var thruster = {
+				step: 0.10 / 60.0,
+				maximum: 1.00 / 60.0,
+				minimum: -1.00 / 60.0,
+				thrust: 0,
+				vector: vector,
+				simulation_tick: function(){
+					//TODO model real thrust curve (bell?); physics of exhaust?
+					object.rotation.x += this.vector.x * this.thrust;
+					object.rotation.y += this.vector.y * this.thrust;
+					object.rotation.z += this.vector.z * this.thrust;
+				},
+				increase: function(){
+					var more = this.thrust + this.step;
+					if( more <= this.maximum ){
+						this.thrust = more;
+					}
+				},
+				decrease: function(){
+					var less = this.thrust - this.step;
+					if( less >= this.minimum ){
+						this.thrust = less;
+					}
+				},
+				stop: function(){
+					this.thrust = 0;
+				}
+			};
+			sys.sim.simulate.push( thruster );
+			return thruster;
 		}
 
 		function thrust_aspect( sys, object, vector ){
@@ -141,7 +271,7 @@ var print = true;
 				thrust: 0,
 				vector: vector,
 				simulation_tick: function(){
-					//TODO thrust
+					//TODO model real thrust curve (bell?); physics of exhaust?
 					object.momentum.x += this.vector.x * this.thrust;
 					object.momentum.y += this.vector.y * this.thrust;
 					object.momentum.z += this.vector.z * this.thrust;
@@ -172,9 +302,9 @@ var print = true;
 			function game_tick(){
 				var done = false;
 				try {
-				tickables.forEach( function( t ) { t.simulation_tick(); } );
-				collidables.forEach( function( t ) { t.collision_tick( collidables ); } );
-				done=true;
+					tickables.forEach( function( t ) { t.simulation_tick(); } );
+					collidables.forEach( function( t ) { t.collision_tick( collidables ); } );
+					done=true;
 				}finally{
 					if( !done ){
 						clearInterval( sim_clock );
