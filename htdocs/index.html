@@ -75,7 +75,15 @@
 			var primary_thruster = thrust_aspect( sys, player, { x: 0, y: 0, z: -1 } );
 			var top_nav_thruster = thrust_aspect( sys, player, { x: 0, y: 1, z: 0 } );
 			var bottom_nav_thruster = thrust_aspect( sys, player, { x: 0, y: -1, z: 0 } );
+			var starboard_nav_thruster = thrust_aspect( sys, player, { x: 1, y: 0, z: 0 } );
+			var port_nav_thruster = thrust_aspect( sys, player, { x: -1, y: 0, z: 0 } );
 			var hitbox = collidable_aspect( sys, player, {x: 1, y: 1, z: 1} );
+			hitbox.collided = function( hitOther ){
+				console.log( hitOther );
+				primary_thruster.stop();
+				player.momentum.z = 0;
+				console.log( player.position );
+			}
 
 			window.addEventListener( "keydown", function( k ){
 				var c = String.fromCharCode( k.keyCode );
@@ -83,9 +91,11 @@
 				switch( c ){
 					case 'R':
 						top_nav_thruster.increase();
+						bottom_nav_thruster.stop();
 						break;
 					case 'Z':
 						bottom_nav_thruster.increase();
+						top_nav_thruster.stop();
 						break;
 					case 'W':
 						primary_thruster.increase();
@@ -93,8 +103,25 @@
 					case 'S':
 						primary_thruster.decrease();
 						break;
+					case 'A':
+						port_nav_thruster.increase();
+						starboard_nav_thruster.stop();
+						player.momentum.x = 0;
+						break;
+					case 'D':
+						starboard_nav_thruster.increase();
+						port_nav_thruster.stop();
+						player.momentum.x = 0;
+						break;
 					case 'P':
 						primary_thruster.stop();
+						starboard_nav_thruster.stop();
+						port_nav_thruster.stop();
+						bottom_nav_thruster.stop();
+						top_nav_thruster.stop();
+						player.momentum.x = 0;
+						player.momentum.y = 0;
+						player.momentum.z = 0;
 						break;
 				}
 			});
@@ -146,16 +173,21 @@ var print = true;
 						}
 						count++;
 						var hit = realArea.isIntersectionBox( check );
-						if( hit && print ){
-							console.log( check, realArea );
+						if( hit ){
+							if( print ){ console.log( check, realArea ); }
 						}
 						return hit;
 					});
-					if( hit.length > 0 && print ){
-						print= false;
-						console.log( hit );
+					if( hit.length > 0 ){
+						if( print ){
+							print= false;
+							console.log( hit );
+						}
+						this.collided( hit );
 					}
-				}
+				},
+
+				collided: function(){}
 			};
 			sys.visuals.animatable.push( collidable );
 			sys.sim.collidables.push( collidable );
