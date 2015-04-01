@@ -16,7 +16,7 @@
 			};
 			init_player( sys );
 
-			var otherFighter = {
+			var otherCraft = {
 				forwardThrust: 0.005
 			};
 		}
@@ -26,39 +26,70 @@
 			var sim = sys.sim;
 
 			var player = {
+				momentum: { x: 0, y: 0, z: 0 },
 				position: { x: 0, y: 0, z: 5 },
 				animate_tick: function(){
 					var camera = visuals.camera;
 					camera.position.x = this.position.x;
 					camera.position.y = this.position.y;
 					camera.position.z = this.position.z;
+				},
+				simulation_tick: function(){
+					this.position.x += this.momentum.x;
+					this.position.y += this.momentum.y;
+					this.position.z += this.momentum.z;
 				}
 			};
 			visuals.animatable.push( player );
-			var primary_thruster = thrust_aspect( sys, player );
+			sys.sim.simulate.push(  player );
+			var primary_thruster = thrust_aspect( sys, player, { x: 0, y: 0, z: -1 } );
+			var top_nav_thruster = thrust_aspect( sys, player, { x: 0, y: 1, z: 0 } );
+			var bottom_nav_thruster = thrust_aspect( sys, player, { x: 0, y: -1, z: 0 } );
 
 			window.addEventListener( "keydown", function( k ){
-			//	console.log( "key: ", k );
-				switch( k.which ){
-					case 87:
-						primary_thruster.thrust += 0.01;
+				var c = String.fromCharCode( k.keyCode );
+				console.log( c );
+				switch( c ){
+					case 'R':
+						top_nav_thruster.increase();
 						break;
-					case 83:
-						primary_thruster.thrust -= 0.01;
+					case 'Z':
+						bottom_nav_thruster.increase();
+						break;
+					case 'W':
+						primary_thruster.increase();
+						break;
+					case 'S':
+						primary_thruster.decrease();
 						break;
 				}
 			});
 		}
 
-		function thrust_aspect( sys, object ){
+		function thrust_aspect( sys, object, vector ){
 			var thruster = {
+				step: 0.01,
+				maximum: 0.4,
+				minimum: -0.4,
 				thrust: 0,
-				vector: { x: 0, y: 0, z: -1 },
+				vector: vector,
 				simulation_tick: function(){
 					//TODO thrust
-					object.position.x += this.vector.x * this.thrust;
-					object.position.y += this.vector.y * this.thrust;
-					object.position.z += this.vector.z * this.thrust;
+					object.momentum.x += this.vector.x * this.thrust;
+					object.momentum.y += this.vector.y * this.thrust;
+					object.momentum.z += this.vector.z * this.thrust;
+				},
+				increase: function(){
+					var more = this.thrust + this.step;
+					if( more < this.maximum ){
+						this.thrust = more;
+					}
+				},
+				decrease: function(){
+					var less = this.thrust - this.step;
+					if( less > this.minimum ){
+						this.thrust = less;
+					}
 				}
 			};
 			sys.sim.simulate.push( thruster );
