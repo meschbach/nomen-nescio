@@ -57,12 +57,17 @@
 			var player = {
 				name: "player",
 				momentum: { x: 0, y: 0, z: 0 },
+				rotation: { x: 0, y: 0, z: 0 },
 				position: { x: 0, y: 0, z: 5 },
 				animate_tick: function(){
 					var camera = visuals.camera;
 					camera.position.x = this.position.x;
 					camera.position.y = this.position.y;
 					camera.position.z = this.position.z;
+
+					camera.rotation.x = this.rotation.x;
+					camera.rotation.y = this.rotation.y;
+					camera.rotation.z = this.rotation.z;
 				},
 				simulation_tick: function(){
 					this.position.x += this.momentum.x;
@@ -77,12 +82,37 @@
 			var bottom_nav_thruster = thrust_aspect( sys, player, { x: 0, y: -1, z: 0 } );
 			var starboard_nav_thruster = thrust_aspect( sys, player, { x: 1, y: 0, z: 0 } );
 			var port_nav_thruster = thrust_aspect( sys, player, { x: -1, y: 0, z: 0 } );
+
 			var hitbox = collidable_aspect( sys, player, {x: 1, y: 1, z: 1} );
 			hitbox.collided = function( hitOther ){
 				console.log( hitOther );
 				primary_thruster.stop();
 				player.momentum.z = 0;
 				console.log( player.position );
+			}
+
+			var pitchThrust = rotational_thrust_aspect( sys, player, { x: 1, y:0, z:0 } );
+			function pitch_forward(){
+				pitchThrust.increase();
+			}
+			function pitch_back(){
+				pitchThrust.decrease();
+			}
+
+			var yawThrust = rotational_thrust_aspect( sys, player, { x: 0, y:1, z:0 } );
+			function yaw_port(){
+				yawThrust.increase();
+			}
+			function yaw_starboard(){
+				yawThrust.decrease();
+			}
+
+			var rollThrust = rotational_thrust_aspect( sys, player, { x: 0, y:0, z:1 } );
+			function roll_port(){
+				rollThrust.increase();
+			}
+			function roll_starboard(){
+				rollThrust.decrease();
 			}
 
 			window.addEventListener( "keydown", function( k ){
@@ -123,6 +153,12 @@
 						player.momentum.y = 0;
 						player.momentum.z = 0;
 						break;
+					case 'I': pitch_forward(); break;
+					case 'K': pitch_back(); break;
+					case 'J': yaw_port(); break;
+					case 'L': yaw_starboard(); break;
+					case 'Q': roll_port(); break;
+					case 'E': roll_starboard(); break;
 				}
 			});
 		}
@@ -192,6 +228,39 @@ var print = true;
 			sys.visuals.animatable.push( collidable );
 			sys.sim.collidables.push( collidable );
 			return collidable;
+		}
+
+		function rotational_thrust_aspect( sys, object, vector ){
+			var thruster = {
+				step: 0.10 / 60.0,
+				maximum: 1.00 / 60.0,
+				minimum: -1.00 / 60.0,
+				thrust: 0,
+				vector: vector,
+				simulation_tick: function(){
+					//TODO model real thrust curve (bell?); physics of exhaust?
+					object.rotation.x += this.vector.x * this.thrust;
+					object.rotation.y += this.vector.y * this.thrust;
+					object.rotation.z += this.vector.z * this.thrust;
+				},
+				increase: function(){
+					var more = this.thrust + this.step;
+					if( more <= this.maximum ){
+						this.thrust = more;
+					}
+				},
+				decrease: function(){
+					var less = this.thrust - this.step;
+					if( less >= this.minimum ){
+						this.thrust = less;
+					}
+				},
+				stop: function(){
+					this.thrust = 0;
+				}
+			};
+			sys.sim.simulate.push( thruster );
+			return thruster;
 		}
 
 		function thrust_aspect( sys, object, vector ){
