@@ -1,0 +1,8 @@
+{
+	"name" : "nomen-nescio",
+	"version" : "0.0.1",
+	"dependencies" : {
+		"threejs" : "r71",
+		"stats.js" : "r12"
+	}
+}

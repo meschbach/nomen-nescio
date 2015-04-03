@@ -1,2 +1,5 @@
 *.swp
 node_modules
+bower_components
+htdocs/libs.js
+htdocs/application.js
