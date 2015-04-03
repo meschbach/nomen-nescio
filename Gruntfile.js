@@ -3,7 +3,7 @@ module.exports = function( grunt ){
 		pkg: grunt.file.readJSON('package.json'),
 		concat: {
 			app : {
-				src: ["src/browser/rendering.js"],
+				src: ["src/browser/*.js"],
 				dest: "htdocs/application.js"
 			},
 			libs: {
@@ -12,6 +12,10 @@ module.exports = function( grunt ){
 			}
 		},
 		watch : {
+			app_js: {
+				files: ["src/browser/*.js"],
+				tasks: ["concat:app"]
+			}
 		}
 	});
 
