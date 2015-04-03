@@ -6,6 +6,10 @@ module.exports = function( grunt ){
 				src: ["src/browser/*.js"],
 				dest: "htdocs/application.js"
 			},
+			app_css: {
+				src: ["src/browser/*.css"],
+				dest: "htdocs/application.css"
+			},
 			libs: {
 				src: ["bower_components/threejs/build/three.js", "bower_components/stats.js/build/stats.min.js" ],
 				dest: "htdocs/libs.js"
@@ -15,6 +19,10 @@ module.exports = function( grunt ){
 			app_js: {
 				files: ["src/browser/*.js"],
 				tasks: ["concat:app"]
+			},
+			app_css: {
+				files: ["src/browser/*.css"],
+				tasks: "concat:app_css"
 			}
 		}
 	});
