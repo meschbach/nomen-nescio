@@ -10,35 +10,27 @@
 			}
 			#stats-container {
 				position: absolute;
+				top: 10px;
+				left: 10px;
 				z-index: 1;
 			}
+			#stats-container div { display: inline-block; }
+			#stats-container h4 { background: #111111; color: white; padding: 0; margin: 0; }
 		</style>
 		<script src="libs.js"></script>
 		<script src="application.js"></script>
-
-<script type="application/x-glsl" id="sky-vertex">
-varying vec2 vUV;
-
-void main() {
-  vUV = uv;
-  vec4 pos = vec4(position, 1.0);
-  gl_Position = projectionMatrix * modelViewMatrix * pos;
-}
-</script>
-
-<script type="application/x-glsl" id="sky-fragment">
-uniform sampler2D texture;
-varying vec2 vUV;
-
-void main() {
-  vec4 sample = texture2D(texture, vUV);
-  gl_FragColor = vec4(sample.xyz, sample.w);
-}
-</script>
-
 	</head>
 	<body onload='init()'>
 		<div id='stats-container'>
+			<div id='stats-renderer'>
+				<h4>Renderer</h4>
+			</div>
+			<div id='stats-sim'>
+				<h4>Sim</h4>
+			</div>
+			<div id='stats-collision'>
+				<h4>Collide</h4>
+			</div>
 		</div>
 	</body>
 </html>

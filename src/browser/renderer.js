@@ -9,7 +9,7 @@ function init_gl(){
 
 	camera.position.z = 5;
 
-	var renderingStats = init_stats();
+	var renderingStats = init_stats( "stats-renderer" );
 	var animatables = [];
 	var render = function () {
 		requestAnimationFrame( render );

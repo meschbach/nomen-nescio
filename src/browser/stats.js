@@ -1,4 +1,4 @@
-function init_stats(){
+function init_stats( targetID ){
 	/*
 	 * Wire in the stats library
 	 */
@@ -8,6 +8,6 @@ function init_stats(){
 	// align top-left
 	stats.domElement.style.display = 'inline-block';
 
-	document.getElementById( "stats-container" ).appendChild( stats.domElement );
+	document.getElementById( targetID || "stats-container" ).appendChild( stats.domElement );
 	return stats;
 }

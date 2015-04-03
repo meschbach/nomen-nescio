@@ -2,8 +2,8 @@ function init_simulation( visuals /* don't really belong here */ ){
 	var tickables = [];
 	var collidables = [];
 
-	var simStats = init_stats();
-	var collisionStats = init_stats();
+	var simStats = init_stats( "stats-sim" );
+	var collisionStats = init_stats( "stats-collision" );
 
 	function game_tick(){
 		var done = false;
