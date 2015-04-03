@@ -3,10 +3,33 @@
 		<title>My first Three.js app</title>
 		<style>
 			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
+			canvas {
+				width: 100%;
+				height: 100%;
+				z-index: 0;
+			}
+			#stats-container {
+				position: absolute;
+				z-index: 1;
+			}
 		</style>
 		<script src="js/three.min.js"></script>
+		<script src="js/stats.min.js"></script>
 		<script>
+function init_stats(){
+	/*
+	 * Wire in the stats library
+	 */
+	var stats = new Stats();
+	stats.setMode(1); // 0: fps, 1: ms
+
+	// align top-left
+	stats.domElement.style.display = 'inline-block';
+
+	document.getElementById( "stats-container" ).appendChild( stats.domElement );
+	return stats;
+}
+
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 		function init(){
 			var sys = {
@@ -400,11 +423,21 @@ var print = true;
 		function init_simulation( visuals /* don't really belong here */ ){
 			var tickables = [];
 			var collidables = [];
+
+			var simStats = init_stats();
+			var collisionStats = init_stats();
+
 			function game_tick(){
 				var done = false;
 				try {
+					simStats.begin();
 					tickables.forEach( function( t ) { t.simulation_tick(); } );
+					simStats.end();
+
+					collisionStats.begin();
 					collidables.forEach( function( t ) { t.collision_tick( collidables ); } );
+					collisionStats.end();
+
 					done=true;
 				}finally{
 					if( !done ){
@@ -422,18 +455,24 @@ var print = true;
 				var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
 				var renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
 				camera.position.z = 5;
 
+				var renderingStats = init_stats();
 				var animatables = [];
 				var render = function () {
 					requestAnimationFrame( render );
 
+					renderingStats.begin();
+
 					animatables.forEach( function( visual ){
 						visual.animate_tick( scene );
 					});
+
+					renderingStats.end();
 
 					renderer.render(scene, camera);
 				};
@@ -506,5 +545,7 @@ void main() {
 
 	</head>
 	<body onload='init()'>
+		<div id='stats-container'>
+		</div>
 	</body>
 </html>
