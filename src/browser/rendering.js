@@ -1,10 +1,11 @@
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 function init(){
-	var sys = {
-		visuals: init_gl(),
-		sim: init_simulation( )
-	};
+	var system = init_system();
+	system.init();
+	var sys = system;
+
 //			init_skybox( sys );
+
 	var player = init_player( sys );
 	init_player_controls( sys, player.actions );
 
