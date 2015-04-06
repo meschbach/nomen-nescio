@@ -11,7 +11,11 @@ module.exports = function( grunt ){
 				dest: "htdocs/application.css"
 			},
 			libs: {
-				src: ["bower_components/threejs/build/three.js", "bower_components/stats.js/build/stats.min.js" ],
+				src: [
+					"bower_components/threejs/build/three.js",
+					"bower_components/threejs/examples/js/loaders/ColladaLoader.js",
+					"bower_components/stats.js/build/stats.min.js"
+				],
 				dest: "htdocs/libs.js"
 			}
 		},
