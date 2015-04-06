@@ -11,7 +11,7 @@ function init_dock( sys ){
 				scene.add( stationMesh );
 			}
 
-			stationMesh.matrixWorldNeedsUpdate = true; 
+			stationMesh.matrixWorldNeedsUpdate = true;
 			stationMesh.position.x = this.position.x;
 			stationMesh.position.y = this.position.y;
 			stationMesh.position.z = this.position.z;
