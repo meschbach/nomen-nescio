@@ -1,4 +1,5 @@
-function rotational_thrust_aspect( sys, object, vector ){
+
+export function rotational_thrust_aspect( sys, object, vector ){
 	var thruster = {
 		step: 0.10 / 60.0,
 		maximum: 1.00 / 60.0,
@@ -31,7 +32,7 @@ function rotational_thrust_aspect( sys, object, vector ){
 	return thruster;
 }
 
-function thrust_aspect( sys, object, vector ){
+export function thrust_aspect( sys, object, vector ){
 	var thruster = {
 		step: 0.10 / 60.0,
 		maximum: 1.00 / 60.0,

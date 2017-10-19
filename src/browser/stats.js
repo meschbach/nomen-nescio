@@ -1,4 +1,5 @@
-function init_stats( targetID ){
+
+export function init_stats( targetID ){
 	/*
 	 * Wire in the stats library
 	 */

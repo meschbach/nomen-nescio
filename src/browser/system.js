@@ -1,4 +1,7 @@
-function init_system(){
+import { init_gl } from './renderer'
+import { init_simulation } from './simulation'
+
+export function init_system(){
 	function System(){ }
 	System.prototype.init = function(){
 		this.visuals = init_gl();

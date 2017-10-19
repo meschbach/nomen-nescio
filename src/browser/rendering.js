@@ -1,5 +1,10 @@
+import { init_system } from './system'
+import { init_player } from './player'
+import { init_player_controls } from './player-controls'
+import { init_dock } from './dock'
+
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
-function init(){
+export function init(){
 	var system = init_system();
 	system.init();
 	var sys = system;
@@ -72,3 +77,4 @@ function goal_text(){
 	}
 	system.attach( text );
 }
+

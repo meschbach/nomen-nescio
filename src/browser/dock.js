@@ -1,4 +1,6 @@
-function init_dock( sys ){
+import { collidable_aspect } from './collidable'
+
+export function init_dock( sys ){
 	// Interesting object to fly through
 	var stationMesh;
 	var simulatedStation = {

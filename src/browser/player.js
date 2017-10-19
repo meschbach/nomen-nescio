@@ -1,4 +1,7 @@
-function init_player( sys ){
+import { thrust_aspect, rotational_thrust_aspect } from './thrusters'
+import { collidable_aspect } from './collidable'
+
+export function init_player( sys ){
 	var visuals = sys.visuals;
 	var sim = sys.sim;
 

@@ -1,4 +1,5 @@
 *.swp
+*.js.map
 node_modules
 bower_components
 htdocs/libs.js

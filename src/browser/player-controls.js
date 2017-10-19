@@ -1,4 +1,4 @@
-function init_player_controls( sys, actions ){
+export function init_player_controls( sys, actions ){
 	var keyActionMap = {
 		R: actions.translate_up,
 		Z: actions.translate_down,

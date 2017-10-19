@@ -1,4 +1,6 @@
-function init_simulation( visuals /* don't really belong here */ ){
+import { init_stats } from './stats'
+
+export function init_simulation( visuals /* don't really belong here */ ){
 	var tickables = [];
 	var collidables = [];
 

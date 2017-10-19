@@ -1,6 +1,6 @@
 var print = true;
 
-function collidable_aspect( sys, object, boundingBox ){
+export function collidable_aspect( sys, object, boundingBox ){
 	var max = new THREE.Vector3( boundingBox.x / 2, boundingBox.y / 2, boundingBox.z / 2 );
 	var min = new THREE.Vector3();
 	min.copy( max ).negate();
