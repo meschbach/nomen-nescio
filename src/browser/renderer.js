@@ -24,8 +24,8 @@ function init_gl(){
 
 		renderer.render(scene, camera);
 	};
+	requestAnimationFrame( render );
 
-	render();
 	return {
 		camera: camera,
 		animatable: animatables

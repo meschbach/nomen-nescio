@@ -6,6 +6,10 @@ module.exports = function( grunt ){
 				src: ["src/browser/*.js"],
 				dest: "htdocs/application.js"
 			},
+			designer: {
+				src: ["src/ship-designer/**/*.js"],
+				dest: "htdocs/designer/ship-designer.js"
+			},
 			app_css: {
 				src: ["src/browser/*.css"],
 				dest: "htdocs/application.css"
@@ -27,6 +31,10 @@ module.exports = function( grunt ){
 			app_css: {
 				files: ["src/browser/*.css"],
 				tasks: "concat:app_css"
+			},
+			ship_designer_js: {
+				files: ["src/ship-designer/**/*.js"],
+				tasks: ["concat:designer"]
 			}
 		}
 	});

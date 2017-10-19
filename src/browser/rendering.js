@@ -22,14 +22,53 @@ function init(){
 		}
 	}
 
+	//
+	test_model( system );
+	var add = true;
+	sys.attach( {
+		animate_tick: function( scene ){
+			if( add ){
+				add = !add;
+				scene.add( new THREE.AmbientLight( 0x404040 ) );
+			}
+		}
+	});
+}
+
+function test_model( sys ){
+	var loader = new THREE.ColladaLoader();
+	loader.options.convertUpAxis = true;
+	loader.load( '/assets/box-ship.dae', function ( collada ) {
+		var object = collada.scene;
+		console.log( collada );
+		var needsAdding = true;
+		var controller = {
+			animate_tick: function( scene ){
+				if( needsAdding ){
+					needsAdding != needsAdding;
+					scene.add( object );
+				}
+			}
+		};
+		sys.attach( controller );
+	});
+}
+
+function goal_text(){
 	var textGeom;
 	var text = {
 		animate_tick: function( scene ){
 			if( !textGeom ){
-				textGeom = new THREE.TextGeometry( "Hello, intersect with the cube." );
-				scene.add( textGeom );
+				textGeom = new THREE.TextGeometry( "Hello, intersect with the cube.", { height: .01 });
+				var wrapper = new THREE.MeshNormalMaterial({color: 0x00ff00});
+				var words = new THREE.Mesh( textGeom, wrapper);
+				words.scale.x = .001;
+				words.scale.y = .001;
+				words.scale.z = .001;
+				words.matrixWorldNeedsUpdate = true;
+				scene.add(words);
 			}
-			textGeom.position.y = 1.2;
 		}
 	}
+	system.attach( text );
 }
