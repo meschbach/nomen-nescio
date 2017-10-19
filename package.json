@@ -16,7 +16,6 @@
 		"webpack-dev-server": "2.9.2"
 	},
 	"scripts": {
-		"babel": "babel js/main.js -o build/main.bundle.js",
 		"start": "webpack-dev-server --content-base htdocs",
 		"webpack": "webpack"
 	}
