@@ -46,7 +46,7 @@ export function init(){
 function test_model( sys ){
 	var loader = new THREE.ColladaLoader();
 	loader.options.convertUpAxis = true;
-	loader.load( '/assets/box-ship.dae', function ( collada ) {
+	loader.load( 'assets/box-ship.dae', function ( collada ) {
 		var object = collada.scene;
 		console.log( collada );
 		var needsAdding = true;
