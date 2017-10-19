@@ -5,14 +5,15 @@
 ### Required tools
 
 * Node & NPM
-* Bower
 
 ### Creating browser assets
 
 ```bash
 npm install
-bower install
+npm run start
 ```
+
+This will bring up the application at http://localhost:8080
 
 ## License
 
