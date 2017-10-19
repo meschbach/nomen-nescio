@@ -1,3 +1,5 @@
+import THREE from 'THREE'
+
 var print = true;
 
 export function collidable_aspect( sys, object, boundingBox ){

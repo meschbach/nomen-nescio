@@ -1,4 +1,5 @@
 import { init_stats } from './stats'
+import THREE from 'THREE'
 
 export function init_gl(){
 	var scene = new THREE.Scene();

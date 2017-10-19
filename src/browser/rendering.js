@@ -2,6 +2,9 @@ import { init_system } from './system'
 import { init_player } from './player'
 import { init_player_controls } from './player-controls'
 import { init_dock } from './dock'
+import THREE from 'THREE'
+import ColladaLoader from 'three-loaders-collada'
+ColladaLoader( THREE )
 
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 export function init(){

@@ -1,3 +1,4 @@
+import Stats from 'stats.js'
 
 export function init_stats( targetID ){
 	/*

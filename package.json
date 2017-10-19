@@ -14,8 +14,11 @@
 		"grunt-cli": "0.1.13",
 		"grunt-contrib-concat": "0.5.1",
 		"grunt-contrib-watch": "0.6.1",
+		"stats.js": "0.17.0",
+		"three": "0.71.0",
+		"three-loaders-collada": "1.0.1",
 		"webpack": "3.8.1",
-		"webpack-dev-server": "^2.9.2"
+		"webpack-dev-server": "2.9.2"
 	},
 	"scripts": {
 		"babel": "babel js/main.js -o build/main.bundle.js",

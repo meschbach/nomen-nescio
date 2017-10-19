@@ -1,3 +1,5 @@
+import THREE from 'THREE'
+
 //Skybox
 function init_skybox( sys ){
 	var rendered = false;

@@ -1,4 +1,5 @@
 import { collidable_aspect } from './collidable'
+import THREE from 'THREE'
 
 export function init_dock( sys ){
 	// Interesting object to fly through
