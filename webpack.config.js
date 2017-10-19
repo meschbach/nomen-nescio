@@ -2,11 +2,11 @@
  var webpack = require('webpack');
 
  module.exports = {
-     entry: './src/browser/rendering.js',
+     entry:  './src/browser/rendering.js',
      output: {
          path: path.resolve(__dirname, 'htdocs'),
          filename: 'application.js',
-					library: "nn"
+				 library: 'nn'
      },
      module: {
          loaders: [
