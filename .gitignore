@@ -6,3 +6,5 @@ htdocs/libs.js
 htdocs/application.js
 htdocs/application.css
 package-lock.json
+.idea/
+
