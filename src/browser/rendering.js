@@ -2,6 +2,7 @@ import { init_system } from './system'
 import { init_player } from './player'
 import { init_player_controls } from './player-controls'
 import { init_dock } from './dock'
+import { init_skybox } from './scene/skybox'
 import THREE from 'THREE'
 import ColladaLoader from 'three-loaders-collada'
 ColladaLoader( THREE )
@@ -12,7 +13,7 @@ export function init(){
 	system.init();
 	var sys = system;
 
-//			init_skybox( sys );
+	init_skybox( sys );
 
 	var player = init_player( sys );
 	init_player_controls( sys, player.actions );
@@ -37,7 +38,7 @@ export function init(){
 		animate_tick: function( scene ){
 			if( add ){
 				add = !add;
-				scene.add( new THREE.AmbientLight( 0x404040 ) );
+				scene.add( new THREE.AmbientLight( 0xCCCCCC ) );
 			}
 		}
 	});
