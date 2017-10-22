@@ -6,11 +6,31 @@ import { init_skybox } from './scene/skybox'
 
 import {
 	AmbientLight,
-	Matrix4
+	Color,
+	Face3,
+	Group,
+	Geometry,
+	Math as TMath,
+	Matrix4,
+	Mesh,
+	MeshPhongMaterial,
+	Object3D,
+	Vector2,
+	Vector3
 } from 'THREE'
 
 let THREEadapter = {
-	Matrix4
+	Color,
+	Face3,
+	Group,
+	Geometry,
+	Math: TMath,
+	Mesh,
+	MeshPhongMaterial,
+	Matrix4,
+	Object3D,
+	Vector2,
+	Vector3
 }
 import ColladaLoaderExtension from 'three-loaders-collada'
 ColladaLoaderExtension( THREEadapter )
@@ -58,7 +78,7 @@ function test_model( sys ){
 	loader.options.convertUpAxis = true;
 	loader.load( 'assets/box-ship.dae', function ( collada ) {
 		var object = collada.scene;
-		console.log( collada );
+		console.log( "Ship loaded: ", collada );
 		var needsAdding = true;
 		var controller = {
 			animate_tick: function( scene ){
