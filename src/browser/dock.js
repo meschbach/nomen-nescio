@@ -1,5 +1,10 @@
 import { collidable_aspect } from './collidable'
-import THREE from 'THREE'
+import {
+	BoxGeometry,
+	Mesh,
+	MeshBasicMaterial,
+	TorusGeometry
+} from 'THREE'
 
 export function init_dock( sys ){
 	// Interesting object to fly through
@@ -8,9 +13,9 @@ export function init_dock( sys ){
 		position: { x: 0, y: 0, z: -5 },
 		animate_tick: function( scene ){
 			if( !stationMesh ){
-				var geometry = new THREE.TorusGeometry( .7, .1, 64, 32);
-				var material = new THREE.MeshBasicMaterial( { color: 0x0000FF } );
-				stationMesh= new THREE.Mesh( geometry, material );
+				var geometry = new TorusGeometry( .7, .1, 64, 32);
+				var material = new MeshBasicMaterial( { color: 0x0000FF } );
+				stationMesh = new Mesh( geometry, material );
 				scene.add( stationMesh );
 			}
 
@@ -30,11 +35,11 @@ export function init_dock( sys ){
 		position: { x: 0, y: 0, z: -5 },
 		animate_tick: function( scene ){
 			if( !waypointMesh ){
-				var geometry = new THREE.BoxGeometry( 1, 1, .1 );
-				var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+				var geometry = new BoxGeometry( 1, 1, .1 );
+				var material = new MeshBasicMaterial( { color: 0x00ff00 } );
 				material.transparent= true;
 				material.opacity = .4;
-				waypointMesh= new THREE.Mesh( geometry, material );
+				waypointMesh= new Mesh( geometry, material );
 				scene.add( waypointMesh );
 			}
 

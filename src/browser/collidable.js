@@ -1,10 +1,17 @@
-import THREE from 'THREE'
+import {
+	Box3,
+	BoxGeometry,
+	Mesh,
+	MeshBasicMaterial,
+	Vector3,
+	WireframeHelper,
+} from 'THREE'
 
 var print = true;
 
 export function collidable_aspect( sys, object, boundingBox ){
-	var max = new THREE.Vector3( boundingBox.x / 2, boundingBox.y / 2, boundingBox.z / 2 );
-	var min = new THREE.Vector3();
+	var max = new Vector3( boundingBox.x / 2, boundingBox.y / 2, boundingBox.z / 2 );
+	var min = new Vector3();
 	min.copy( max ).negate();
 
 	var visual;
@@ -12,17 +19,17 @@ export function collidable_aspect( sys, object, boundingBox ){
 		object: object,
 		bounds: boundingBox,
 		calc: function(){
-			var box = new THREE.Box3( min.clone(), max.clone() );
-			var point = new THREE.Vector3( this.object.position.x, this.object.position.y, this.object.position.z );
+			var box = new Box3( min.clone(), max.clone() );
+			var point = new Vector3( this.object.position.x, this.object.position.y, this.object.position.z );
 			return box.translate( point );
 		},
 		animate_tick: function( scene ){
 			if( !visual ){
-				var geometry = new THREE.BoxGeometry( boundingBox.x, boundingBox.y, boundingBox.z );
-				var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-				var mesh = new THREE.Mesh( geometry, material );
+				var geometry = new BoxGeometry( boundingBox.x, boundingBox.y, boundingBox.z );
+				var material = new MeshBasicMaterial( { color: 0xff0000 } );
+				var mesh = new Mesh( geometry, material );
 
-				visual = new THREE.WireframeHelper( mesh, 0xff0000 );
+				visual = new WireframeHelper( mesh, 0xff0000 );
 				visual.matrixAutoUpdate = true; //GAH!  :-(
 
 				scene.add( visual );
@@ -46,7 +53,7 @@ export function collidable_aspect( sys, object, boundingBox ){
 					//console.log( check.min, check.max, realArea.min, realArea.max );
 				}
 				count++;
-				var hit = realArea.isIntersectionBox( check );
+				var hit = realArea.intersectsBox( check );
 				if( hit ){
 					if( print ){ console.log( check, realArea ); }
 				}

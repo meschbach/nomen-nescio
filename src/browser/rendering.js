@@ -3,9 +3,18 @@ import { init_player } from './player'
 import { init_player_controls } from './player-controls'
 import { init_dock } from './dock'
 import { init_skybox } from './scene/skybox'
-import THREE from 'THREE'
-import ColladaLoader from 'three-loaders-collada'
-ColladaLoader( THREE )
+
+import {
+	AmbientLight,
+	Matrix4
+} from 'THREE'
+
+let THREEadapter = {
+	Matrix4
+}
+import ColladaLoaderExtension from 'three-loaders-collada'
+ColladaLoaderExtension( THREEadapter )
+const ColladaLoader = THREEadapter.ColladaLoader
 
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 export function init(){
@@ -38,14 +47,14 @@ export function init(){
 		animate_tick: function( scene ){
 			if( add ){
 				add = !add;
-				scene.add( new THREE.AmbientLight( 0xCCCCCC ) );
+				scene.add( new AmbientLight( 0xCCCCCC ) );
 			}
 		}
 	});
 }
 
 function test_model( sys ){
-	var loader = new THREE.ColladaLoader();
+	var loader = new ColladaLoader();
 	loader.options.convertUpAxis = true;
 	loader.load( 'assets/box-ship.dae', function ( collada ) {
 		var object = collada.scene;
