@@ -8,7 +8,7 @@ import {
 
 export const init_skybox = sys => {
 
-    new TextureLoader().load('space.jpg', (tex) => {
+    new TextureLoader().load('assets/space.jpg', (tex) => {
 
         var material = new MeshBasicMaterial({map: tex, side: BackSide});
         var geometry = new SphereGeometry(25, 25, 25);

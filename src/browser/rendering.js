@@ -20,6 +20,10 @@ import {
 	Vector3
 } from 'THREE'
 
+import {
+    SpotLight
+} from 'THREE';
+
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 export function init(){
 	var sys = init_system();
@@ -44,17 +48,24 @@ export function init(){
 		}
 	}
 
-	//
-	//test_model( system );
-	var add = true;
-	sys.attach( {
-		animate_tick: function( scene ){
-			if( add ){
-				add = !add;
-				scene.add( new AmbientLight( 0xCCCCCC ) );
-			}
+	// Add Lighting
+
+	var ambientLight = new AmbientLight(0xCCCCCC);
+
+    var spotLight = new SpotLight(0xF4DF42, 1);
+    spotLight.position.set(0, 2, 0);
+    spotLight.angle = Math.PI / 4;
+    spotLight.penumbra = 0.05;
+    spotLight.decay = 2;
+    spotLight.distance = 200;
+
+	sys.attach({
+		animate_tick: scene => {
+            scene.add(ambientLight);
+            scene.add(spotLight);
 		}
 	});
+
 }
 
 
