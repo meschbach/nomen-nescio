@@ -1,26 +1,25 @@
 import {
-	BackSide,
-	ImageUtils,
-	Mesh,
-	MeshPhongMaterial,
-	SphereGeometry,
+    TextureLoader,
+    MeshBasicMaterial,
+    SphereGeometry,
+    Mesh,
+    BackSide
 } from 'THREE';
 
-export function init_skybox(sys) {
+export const init_skybox = sys => {
 
-    var skyboxGeometry = new SphereGeometry(25, 25, 25);
-    var skyboxMaterial = new MeshPhongMaterial({
-        map:  ImageUtils.loadTexture('space.jpg'),
-        side: BackSide
+    new TextureLoader().load('assets/space.jpg', (tex) => {
+
+        var material = new MeshBasicMaterial({map: tex, side: BackSide});
+        var geometry = new SphereGeometry(25, 25, 25);
+        var mesh = new Mesh(geometry, material);
+
+        sys.visuals.animatable.push({
+            animate_tick: scene => {
+                scene.add(mesh);
+            }
+        });
+
     });
-    var skyboxMesh = new Mesh(skyboxGeometry, skyboxMaterial);
-    skyboxMesh.position.z = -5;
 
-	var skybox = {
-		animate_tick: scene => {
-            scene.add( skyboxMesh );
-        }
-    };
-
-	sys.visuals.animatable.push( skybox );
 }

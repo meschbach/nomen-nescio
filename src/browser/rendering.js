@@ -3,6 +3,7 @@ import { init_player } from './player'
 import { init_player_controls } from './player-controls'
 import { init_dock } from './dock'
 import { init_skybox } from './scene/skybox'
+import { init_ship } from "./scene/ship";
 
 import {
 	AmbientLight,
@@ -19,30 +20,17 @@ import {
 	Vector3
 } from 'THREE'
 
-let THREEadapter = {
-	Color,
-	Face3,
-	Group,
-	Geometry,
-	Math: TMath,
-	Mesh,
-	MeshPhongMaterial,
-	Matrix4,
-	Object3D,
-	Vector2,
-	Vector3
-}
-import ColladaLoaderExtension from 'three-loaders-collada'
-ColladaLoaderExtension( THREEadapter )
-const ColladaLoader = THREEadapter.ColladaLoader
+import {
+    SpotLight
+} from 'THREE';
 
 //http://threejs.org/docs/index.html#Manual/Introduction/Creating_a_scene
 export function init(){
-	var system = init_system();
-	system.init();
-	var sys = system;
+	var sys = init_system();
+	sys.init();
 
-	init_skybox( sys );
+	init_skybox(sys);
+	init_ship(sys);
 
 	var player = init_player( sys );
 	init_player_controls( sys, player.actions );
@@ -60,37 +48,26 @@ export function init(){
 		}
 	}
 
-	//
-	test_model( system );
-	var add = true;
-	sys.attach( {
-		animate_tick: function( scene ){
-			if( add ){
-				add = !add;
-				scene.add( new AmbientLight( 0xCCCCCC ) );
-			}
+	// Add Lighting
+
+	var ambientLight = new AmbientLight(0xCCCCCC);
+
+    var spotLight = new SpotLight(0xF4DF42, 1);
+    spotLight.position.set(0, 2, 0);
+    spotLight.angle = Math.PI / 4;
+    spotLight.penumbra = 0.05;
+    spotLight.decay = 2;
+    spotLight.distance = 200;
+
+	sys.attach({
+		animate_tick: scene => {
+            scene.add(ambientLight);
+            scene.add(spotLight);
 		}
 	});
+
 }
 
-function test_model( sys ){
-	var loader = new ColladaLoader();
-	loader.options.convertUpAxis = true;
-	loader.load( 'assets/box-ship.dae', function ( collada ) {
-		var object = collada.scene;
-		console.log( "Ship loaded: ", collada );
-		var needsAdding = true;
-		var controller = {
-			animate_tick: function( scene ){
-				if( needsAdding ){
-					needsAdding != needsAdding;
-					scene.add( object );
-				}
-			}
-		};
-		sys.attach( controller );
-	});
-}
 
 function goal_text(){
 	var textGeom;
@@ -110,4 +87,3 @@ function goal_text(){
 	}
 	system.attach( text );
 }
-
