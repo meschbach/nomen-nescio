@@ -1,6 +1,6 @@
 {
 	"name": "nomen-nescio",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"devDependencies": {
 		"three": "^0.87.1",
 		"babel-cli": "6.26.0",
